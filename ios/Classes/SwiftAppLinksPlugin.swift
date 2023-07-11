@@ -9,6 +9,21 @@ public final class SwiftAppLinksPlugin: NSObject, FlutterPlugin, FlutterStreamHa
   private var referrerURLStr: String?
   private var parameters: [String: Any]?
 
+    public static func applicationDidFinishLaunching(_ userActivity: NSUserActivity) {
+        switch userActivity.activityType {
+          case NSUserActivityTypeBrowsingWeb:
+            guard let url = userActivity.webpageURL else {
+              return
+            }
+            let referrerURLStr = userActivity.referrerURL?.absoluteString
+            let link = url.absoluteString
+            SwiftAppLinksIntercept().initialLink = link
+            SwiftAppLinksIntercept().referrerURLStr = referrerURLStr
+          default:
+            break
+        }
+    }
+    
   public static func register(with registrar: FlutterPluginRegistrar) {
     let methodChannel = FlutterMethodChannel(name: "com.llfbandit.app_links/messages", binaryMessenger: registrar.messenger())
     let eventChannel = FlutterEventChannel(name: "com.llfbandit.app_links/events", binaryMessenger: registrar.messenger())
@@ -23,14 +38,12 @@ public final class SwiftAppLinksPlugin: NSObject, FlutterPlugin, FlutterStreamHa
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
       case "getInitialAppLink":
-      debugPrint("iOS initialLink: \(initialLink)")
         result(initialLink)
       case "getLatestAppLink":
-      debugPrint("iOS latestLink: \(latestLink)")
         result(latestLink)
     case "getInitialReferrerURL":
-    debugPrint("iOS parameters: \(parameters)")
-         result(parameters)
+        let para = parameters ?? ["link": initialLink ?? SwiftAppLinksIntercept().initialLink, "referrerURL": referrerURLStr ?? SwiftAppLinksIntercept().referrerURLStr]
+        result(para)
       default:
         result(FlutterMethodNotImplemented)
     }
@@ -80,7 +93,7 @@ public final class SwiftAppLinksPlugin: NSObject, FlutterPlugin, FlutterStreamHa
   private func handleLink(url: URL) -> Void {
     let link = url.absoluteString
 
-    debugPrint("iOS handleLink: \(link)")
+    print("iOS handleLink: \(link)")
 
     latestLink = link
 
@@ -92,9 +105,14 @@ public final class SwiftAppLinksPlugin: NSObject, FlutterPlugin, FlutterStreamHa
       return
     }
 
-//     _eventSink(latestLink)
-
-    parameters = ["link": latestLink, "referrerURL": referrerURLStr];
-    _eventSink(parameters)
+//    _eventSink(latestLink)
+     parameters = ["link": latestLink, "referrerURL": referrerURLStr]
+     _eventSink(parameters)
   }
+}
+
+class SwiftAppLinksIntercept {
+  static let shared = SwiftAppLinksIntercept()
+  var initialLink: String?
+  var referrerURLStr: String?
 }

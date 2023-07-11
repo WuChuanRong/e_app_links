@@ -43,10 +43,13 @@ class AppLinksMethodChannel extends AppLinksPlatform {
   }
 
   // @override
-  Stream<String> get stringLinkStream => _event
-      .receiveBroadcastStream()
-      .where((link) => link != null && link.isNotEmpty)
-      .map<String>((dynamic link) => link as String);
+  Stream<String> get stringLinkStream {
+    return Stream.value('value');
+    // return _event
+    //     .receiveBroadcastStream()
+    //     .where((link) => link != null && link.isNotEmpty)
+    //     .map<String>((dynamic link) => link as String);
+  }
 
   @override
   Stream<Uri> get uriLinkStream {
@@ -87,6 +90,7 @@ class AppLinksMethodChannel extends AppLinksPlatform {
   // 从原生（iOS、Android）接收到的 Event 事件
   @override
   Stream<Map<String, dynamic>> get referrerURLStream {
+    // return Stream.value({});
     return _event
         .receiveBroadcastStream()
         .where((link) => link != null && link.isNotEmpty)
